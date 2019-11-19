@@ -1,4 +1,5 @@
-﻿using EastFive.Api.Azure.Credentials;
+﻿using EastFive.Api;
+using EastFive.Api.Azure.Credentials;
 using EastFive.Api.Controllers;
 using EastFive.Api.Tests;
 using EastFive.Extensions;
@@ -115,6 +116,63 @@ namespace EastFive.Azure.Tests
                 return base.CanAdministerCredentialAsync(actorInQuestion, security);
             return CanAdministerCredential(actorInQuestion, security);
         }
+
+        #region IInvokeApplication
+
+        public Uri ServerLocation => EastFive.Web.Configuration.Settings.GetUri(
+                        EastFive.Api.Tests.AppSettings.ServerUrl,
+                    (routesApiFound) => routesApiFound,
+                    (why) => new Uri("http://test.example.com/"));
+
+        public string ApiRouteName => EastFive.Web.Configuration.Settings.GetString(
+                        EastFive.Api.Tests.AppSettings.RoutesApi,
+                    (routesApiFound) => routesApiFound,
+                    (why) => "DefaultApi");
+
+        IApplication IInvokeApplication.Application => this;
+
+        public RequestMessage<TResource> GetRequest<TResource>()
+        {
+            return new RequestMessage<TResource>(this);
+        }
+
+        public HttpRequestMessage GetHttpRequest()
+        {
+            var httpRequest = new HttpRequestMessage();
+            var config = new HttpConfiguration();
+
+            var updatedConfig = ConfigureRoutes(httpRequest, config);
+
+            httpRequest.SetConfiguration(updatedConfig);
+
+            foreach (var headerKVP in this.Headers)
+                httpRequest.Headers.Add(headerKVP.Key, headerKVP.Value);
+
+            httpRequest.RequestUri = this.ServerLocation;
+            return httpRequest;
+        }
+
+        protected virtual HttpConfiguration ConfigureRoutes(HttpRequestMessage httpRequest, HttpConfiguration config)
+        {
+            var routeNameApi = "api";
+            var apiRoute = config.Routes.MapHttpRoute(
+                            name: routeNameApi,
+                            routeTemplate: routeNameApi + "/{controller}/{id}",
+                            defaults: new { id = RouteParameter.Optional }
+                        );
+            httpRequest.SetRouteData(new System.Web.Http.Routing.HttpRouteData(apiRoute));
+
+            var mvcRoute = config.Routes.MapHttpRoute(
+                            name: "default",
+                            routeTemplate: "{controller}/{action}/{id}",
+                            defaults: new { controller = "Default", action = "Index", id = "" }
+                            );
+            httpRequest.SetRouteData(new System.Web.Http.Routing.HttpRouteData(mvcRoute));
+            
+            return config;
+        }
+
+        #endregion
 
         #region Mockable Services
 

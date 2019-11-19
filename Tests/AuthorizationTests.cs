@@ -17,6 +17,7 @@ using EastFive.Security.SessionServer.Api.Tests;
 using EastFive.Azure.Auth;
 using EastFive.Api;
 using BlackBarLabs.Extensions;
+using System.Net.Http;
 
 namespace EastFive.Azure.Tests.Authorization
 {
@@ -519,8 +520,8 @@ namespace EastFive.Azure.Tests.Authorization
                     });
 
             // TODO: comms.LoadToken(session.token);
-            var authentication = await comms.GetAsync<Method, Method>(
-                onContents:
+            var authentication = await comms.GetRequest<Method>()
+                .OnContentsAsync(HttpMethod.Get,
                     authentications =>
                     {
                         var matchingAuthentications = authentications
