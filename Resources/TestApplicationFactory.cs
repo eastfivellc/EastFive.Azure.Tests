@@ -28,7 +28,6 @@ namespace EastFive.Azure.Tests
             var timeService = new EastFive.Web.Services.TimeService();
             Func<ISendMessageService> messageService = () => default(ISendMessageService);
 
-            var httpConfig = new HttpConfiguration();
             //ProvideLoginMock.method = CredentialValidationMethodTypes.Password;
             var identityServices = new Func<
                         Func<IProvideAuthorization, IProvideAuthorization[]>,
@@ -38,9 +37,9 @@ namespace EastFive.Azure.Tests
                     {
                         ProvideLoginMock.InitializeAsync,
                     };
-            EastFive.Api.Services.ServiceConfiguration.Initialize(httpConfig,
-                messageService,
-                () => timeService);
+            //EastFive.Api.Services.ServiceConfiguration.Initialize(httpConfig,
+            //    messageService,
+            //    () => timeService);
             return await (new TestApplicationFactory()).AsTask();
         }
 
@@ -136,14 +135,14 @@ namespace EastFive.Azure.Tests
             return new RequestMessage<TResource>(this);
         }
 
-        public HttpRequestMessage GetHttpRequest()
+        public IHttpRequest GetHttpRequest()
         {
-            var httpRequest = new HttpRequestMessage();
-            var config = new HttpConfiguration();
+            var httpRequest = new RequestMessage();
+            //var config = new HttpConfiguration();
 
-            var updatedConfig = ConfigureRoutes(httpRequest, config);
+            //var updatedConfig = ConfigureRoutes(httpRequest, config);
 
-            httpRequest.SetConfiguration(updatedConfig);
+            //httpRequest.SetConfiguration(updatedConfig);
 
             foreach (var headerKVP in this.Headers)
                 httpRequest.Headers.Add(headerKVP.Key, headerKVP.Value);
@@ -152,25 +151,25 @@ namespace EastFive.Azure.Tests
             return httpRequest;
         }
 
-        protected virtual HttpConfiguration ConfigureRoutes(HttpRequestMessage httpRequest, HttpConfiguration config)
-        {
-            var routeNameApi = "api";
-            var apiRoute = config.Routes.MapHttpRoute(
-                            name: routeNameApi,
-                            routeTemplate: routeNameApi + "/{controller}/{id}",
-                            defaults: new { id = RouteParameter.Optional }
-                        );
-            httpRequest.SetRouteData(new System.Web.Http.Routing.HttpRouteData(apiRoute));
+        //protected virtual HttpConfiguration ConfigureRoutes(HttpRequestMessage httpRequest, HttpConfiguration config)
+        //{
+        //    var routeNameApi = "api";
+        //    var apiRoute = config.Routes.MapHttpRoute(
+        //                    name: routeNameApi,
+        //                    routeTemplate: routeNameApi + "/{controller}/{id}",
+        //                    defaults: new { id = RouteParameter.Optional }
+        //                );
+        //    httpRequest.SetRouteData(new System.Web.Http.Routing.HttpRouteData(apiRoute));
 
-            var mvcRoute = config.Routes.MapHttpRoute(
-                            name: "default",
-                            routeTemplate: "{controller}/{action}/{id}",
-                            defaults: new { controller = "Default", action = "Index", id = "" }
-                            );
-            httpRequest.SetRouteData(new System.Web.Http.Routing.HttpRouteData(mvcRoute));
+        //    var mvcRoute = config.Routes.MapHttpRoute(
+        //                    name: "default",
+        //                    routeTemplate: "{controller}/{action}/{id}",
+        //                    defaults: new { controller = "Default", action = "Index", id = "" }
+        //                    );
+        //    httpRequest.SetRouteData(new System.Web.Http.Routing.HttpRouteData(mvcRoute));
             
-            return config;
-        }
+        //    return config;
+        //}
 
         #endregion
 

@@ -457,9 +457,9 @@ namespace EastFive.Azure.Tests.Authorization
                                         });
                                     comms.Headers.Add(tokenNew.Key, tokenNew.Value);
 
-                                    var integration = new Auth.Integration
+                                    var integration = new Auth.XIntegration
                                     {
-                                        integrationRef = Guid.NewGuid().AsRef<Auth.Integration>(),
+                                        integrationRef = Guid.NewGuid().AsRef<Auth.XIntegration>(),
                                         accountId = internalSystemUserId,
                                         Method = mockAuthenticationMock.authenticationId,
                                         authorization = new RefOptional<Auth.Authorization>(authIdRef),
