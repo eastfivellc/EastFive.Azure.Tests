@@ -26,17 +26,18 @@ namespace EastFive.Azure.Tests.Authorization
     {
         internal void GenerateKeys()
         {
-            var rsa = new RSACryptoServiceProvider(2048);
+            using (var rsa = new RSACryptoServiceProvider(2048))
+            {
+                rsa.PersistKeyInCsp = false; //This is important because we don't want to store these keys in the windows files system
 
-            rsa.PersistKeyInCsp = false; //This is important because we don't want to store these keys in the windows files system
+                string publicPrivateKeyXML = rsa.ToXmlString(true);
+                string publicOnlyKeyXML = rsa.ToXmlString(false);
 
-            string publicPrivateKeyXML = rsa.ToXmlString(true);
-            string publicOnlyKeyXML = rsa.ToXmlString(false);
+                string publicPrivateKeystring = CryptoTools.UrlBase64Encode(publicPrivateKeyXML);
+                string publicOnlyKeystring = CryptoTools.UrlBase64Encode(publicOnlyKeyXML);
 
-            string publicPrivateKeystring = CryptoTools.UrlBase64Encode(publicPrivateKeyXML);
-            string publicOnlyKeystring = CryptoTools.UrlBase64Encode(publicOnlyKeyXML);
-            
-            // do stuff with keys...
+                // do stuff with keys...
+            }
         }
 
         [TestMethod]
