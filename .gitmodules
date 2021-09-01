@@ -1,0 +1,12 @@
+[submodule "EastFive.Core"]
+	path = EastFive.Core
+	url = git@github.com:eastfivellc/EastFive.Core.git
+[submodule "EastFive.Api"]
+	path = EastFive.Api
+	url = git@github.com:eastfivellc/EastFive.Api.git
+[submodule "EastFive.Azure"]
+	path = EastFive.Azure
+	url = git@github.com:eastfivellc/EastFive.Azure.git
+[submodule "EastFive.Web"]
+	path = EastFive.Web
+	url = git@github.com:eastfivellc/EastFive.Web.git

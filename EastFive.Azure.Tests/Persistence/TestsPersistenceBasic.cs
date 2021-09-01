@@ -1,219 +1,39 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using EastFive.Api.Tests;
 using EastFive.Extensions;
-using EastFive;
-using EastFive.Collections.Generic;
-using EastFive.Api;
-
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Runtime.Serialization;
 
-using BlackBarLabs.Api.Resources;
-using BlackBarLabs.Extensions;
-using EastFive.Api.Controllers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Newtonsoft.Json;
+
+using EastFive;
+using EastFive.Collections.Generic;
+using EastFive.Api;
 using EastFive.Azure.Persistence.AzureStorageTables;
 using EastFive.Linq;
 using EastFive.Linq.Async;
-using Newtonsoft.Json;
 using EastFive.Persistence;
 using EastFive.Persistence.Azure.StorageTables;
+using EastFive.Azure.Tests.Persistence.Models;
 
 namespace EastFive.Azure.Tests.Persistence
 {
-    [DataContract]
-    [StorageTable]
-    public struct ComplexStorageModel : IReferenceable
-    {
-        public Guid id => resourceRef.id;
-
-        public const string ResourceIdPropertyName = "id";
-        [RowKey]
-        [StandardParititionKey]
-        public IRef<ComplexStorageModel> resourceRef;
-
-        [DataContract]
-        public class EmbeddedModel
-        {
-            #region Singles
-
-            [Storage]
-            public Guid guid;
-
-            [Storage]
-            public string stringProperty;
-
-            [Storage]
-            public object objectInt;
-
-            [Storage]
-            public object objectString;
-
-            [Storage]
-            public IRef<RelatedModel> relatedRef;
-
-            [Storage]
-            public IRefOptional<RelatedModel> relatedOptionalRef;
-
-            #endregion
-
-            #region Arrays
-
-            [Storage]
-            public Guid[] arrayGuid;
-
-            [Storage]
-            public string[] arrayString;
-
-            [Storage]
-            public object[] arrayObjectInt;
-
-            [Storage]
-            public object[] arrayObjectString;
-
-            [Storage]
-            public IRef<RelatedModel>[] arrayRef;
-
-            [Storage]
-            public IRef<IReferenceable>[] arrayRefObjObj;
-
-            [Storage]
-            public IRefOptional<RelatedModel>[] arrayRelatedOptionalRef;
-
-            [Storage]
-            public IRefOptional<IReferenceable>[] arrayRelatedOptionalObjObjRef;
-
-            #endregion
-        }
-
-        public enum ExampleEnum
-        {
-            ascending,
-            desending,
-            neutral,
-        }
-
-        #region Singles
-
-        public const string GuidPropertyName = "guid";
-        [Storage(Name = GuidPropertyName)]
-        public Guid guid;
-
-        public const string StringPropertyName = "string";
-        [Storage(Name = StringPropertyName)]
-        public string stringProperty;
-
-        [Storage]
-        public object objectInt;
-
-        [Storage]
-        public object objectString;
-
-        public const string RealtedPropertyName = "related";
-        [Storage(Name = RealtedPropertyName)]
-        public IRef<RelatedModel> relatedRef;
-
-        [Storage]
-        public IRef<IReferenceable> refObjObj;
-
-        [Storage]
-        public IRefOptional<RelatedModel> relatedOptionalRef;
-
-        [Storage]
-        public IRefOptional<IReferenceable> relatedOptionalObjObjRef;
-
-        [Storage]
-        public EmbeddedModel embeddedModel;
-
-        #endregion
-
-        #region Arrays
-
-        [Storage]
-        public Guid[] arrayGuid;
-
-        [Storage]
-        public string[] arrayString;
-
-        [Storage]
-        public object[] arrayObjectInt;
-
-        [Storage]
-        public object[] arrayObjectString;
-
-        [Storage]
-        public ExampleEnum[] arrayEnum;
-
-        [Storage]
-        public IRef<RelatedModel>[] arrayRef;
-
-        [Storage]
-        public IRef<IReferenceable>[] arrayRefObjObj;
-
-        [Storage]
-        public IRef<RelatedModelObj>[] arrayRefObj;
-
-        [Storage]
-        public IRefOptional<RelatedModel>[] arrayRelatedOptionalRef;
-
-        [Storage]
-        public IRefOptional<IReferenceable>[] arrayRelatedOptionalObjObjRef;
-
-        [Storage]
-        public EmbeddedModel[] arrayEmbeddedModel;
-
-        #endregion
-
-        #region Dictionary
-
-        [Storage]
-        public IDictionary<Guid, Guid[]> dictGuid;
-
-        [Storage]
-        public IDictionary<object, object[]> dictObject;
-
-        [Storage]
-        public IDictionary<string, string[]> dictObjectIntArrayEmbedArray;
-
-        [Storage]
-        public IDictionary<IRef<RelatedModel>, IRef<RelatedModel>[]> dictRef;
-
-        [Storage]
-        public IDictionary<IRef<IReferenceable>, IRef<IReferenceable>[]> dictRefObjectObj;
-
-        [Storage]
-        public IDictionary<IRefOptional<RelatedModel>, IRefOptional<RelatedModel>[]> dictRefOptional;
-
-        [Storage]
-        public IDictionary<IRefOptional<IReferenceable>, IRefOptional<IReferenceable>[]> dictRefOptionalObjObj;
-
-        [Storage]
-        public IDictionary<EmbeddedModel, EmbeddedModel[]> dictEmbeddedModel;
-
-        #endregion
-
-    }
-
-    [DataContract]
-    public struct RelatedModel : IReferenceable
-    {
-        public Guid id { get; set; }
-    }
-
-    [DataContract]
-    public class RelatedModelObj : IReferenceable
-    {
-        public Guid id { get; set; }
-    }
-
+    
     [TestClass]
-    public class ResourceTests
+    public class TestsPersistenceBasic
     {
+        [TestInitialize]
+        public void Initialize()
+        {
+            EastFive.Azure.Tests.Utilities.Configuration.Construct();
+        }
+
         [TestMethod]
         public async Task DataStoresCorrectly()
         {
@@ -232,7 +52,7 @@ namespace EastFive.Azure.Tests.Persistence
                 arrayObjectString = new object[] { null, "barF", string.Empty, "fooD" },
                 arrayRef = new[] { Guid.NewGuid().AsRef<RelatedModel>(), Guid.NewGuid().AsRef<RelatedModel>() },
                 arrayRefObjObj = new[] { Guid.NewGuid().AsRef<IReferenceable>(), Guid.NewGuid().AsRef<IReferenceable>() },
-                arrayRelatedOptionalObjObjRef = new []
+                arrayRelatedOptionalObjObjRef = new[]
                 {
                     Guid.NewGuid().AsRefOptional<IReferenceable>(),
                     default(Guid?).AsRefOptional<IReferenceable>(),
@@ -286,8 +106,8 @@ namespace EastFive.Azure.Tests.Persistence
                 relatedOptionalRef = Guid.NewGuid().AsRefOptional<RelatedModel>(),
                 relatedRef = Guid.NewGuid().AsRef<RelatedModel>(),
                 stringProperty = "barf",
-                arrayGuid = new [] { Guid.NewGuid(), Guid.NewGuid() },
-                arrayEnum = new []
+                arrayGuid = new[] { Guid.NewGuid(), Guid.NewGuid() },
+                arrayEnum = new[]
                 {
                     ComplexStorageModel.ExampleEnum.neutral,
                     ComplexStorageModel.ExampleEnum.ascending,
@@ -311,7 +131,7 @@ namespace EastFive.Azure.Tests.Persistence
                     Guid.NewGuid().AsRefOptional<RelatedModel>(),
                 },
                 arrayString = new[] { "Bar", null, string.Empty, "Food", },
-                arrayEmbeddedModel = new [] { embedded1, embedded2  },
+                arrayEmbeddedModel = new[] { embedded1, embedded2 },
 
                 dictGuid = new Dictionary<Guid, Guid[]>
                 {
@@ -446,38 +266,10 @@ namespace EastFive.Azure.Tests.Persistence
 
         }
 
-        [DataContract]
-        [StorageTable]
-        public struct UserSuppliedPartitionStorageModel : IReferenceable
-        {
-            public Guid id => resourceRef.id;
-
-            [RowKey]
-            public IRef<UserSuppliedPartitionStorageModel> resourceRef;
-
-            [ParititionKey]
-            //[Storage]
-            public string partitionKey;
-
-            [Storage]
-            public bool toggle;
-        }
-
         [TestMethod]
         public async Task CanSupplyPartition()
         {
-            UserSuppliedPartitionStorageModel GetModel()
-            {
-                var resourceRef = Guid.NewGuid().AsRef<UserSuppliedPartitionStorageModel>();
-                var partitionKey = resourceRef.id.ToString("N").Substring(0, 3);
-                return new UserSuppliedPartitionStorageModel
-                {
-                    resourceRef = resourceRef,
-                    partitionKey = partitionKey,
-                };
-            }
-
-            var instance = GetModel();
+            var instance = UserSuppliedPartitionStorageModel.GetModel();
             var instanceWasCreated = await instance.StorageCreateAsync(
                 (discard) => true,
                 () => false);
@@ -490,22 +282,30 @@ namespace EastFive.Azure.Tests.Persistence
             Assert.IsTrue(instanceWasReplaced);
 
             var foundInstanceMaybe = await instance.resourceRef.StorageGetAsync(
+                additionalProperties:query => query
+                    .Where(item => item.partitionKey == instance.partitionKey),
                 (entity) => entity.AsOptional(),
                 () => default);
             Assert.IsTrue(foundInstanceMaybe.HasValue);
             Assert.AreEqual(true, foundInstanceMaybe.Value.toggle);
 
             var instanceWasDeleted = await instance.resourceRef.StorageDeleteAsync(
-                () => true,
+                    additionalProperties: query => query
+                        .Where(item => item.partitionKey == instance.partitionKey),
+                (item) => true,
                 () => false);
             Assert.IsTrue(instanceWasDeleted);
 
             foundInstanceMaybe = await instance.resourceRef.StorageGetAsync(
+                    additionalProperties: query => query
+                        .Where(item => item.partitionKey == instance.partitionKey),
                 (entity) => entity.AsOptional(),
                 () => default);
             Assert.IsFalse(foundInstanceMaybe.HasValue);
 
             instanceWasCreated = await instance.resourceRef.StorageCreateOrUpdateAsync(
+                    additionalProperties: query => query
+                            .Where(item => item.partitionKey == instance.partitionKey),
                 async (created, entity, saveAsync) =>
                 {
                     Assert.AreEqual(entity.resourceRef.id, instance.resourceRef.id);
@@ -517,6 +317,8 @@ namespace EastFive.Azure.Tests.Persistence
             Assert.IsTrue(instanceWasCreated);
 
             var instanceWasUpdated = await instance.resourceRef.StorageCreateOrUpdateAsync(
+                    additionalProperties: query => query
+                            .Where(item => item.partitionKey == instance.partitionKey),
                 async (created, entity, saveAsync) =>
                 {
                     if (created)
@@ -528,6 +330,8 @@ namespace EastFive.Azure.Tests.Persistence
             Assert.IsTrue(instanceWasUpdated);
 
             instanceWasUpdated = await instance.resourceRef.StorageUpdateAsync(
+                    additionalProperties: query => query
+                            .Where(item => item.partitionKey == instance.partitionKey),
                 async (entity, saveAsync) =>
                 {
                     entity.toggle = true;
@@ -546,11 +350,15 @@ namespace EastFive.Azure.Tests.Persistence
             Assert.AreEqual(true, foundInstances[0].toggle);
 
             instanceWasDeleted = await instance.resourceRef.StorageDeleteAsync(
-                () => true,
+                    additionalProperties: query => query
+                            .Where(item => item.partitionKey == instance.partitionKey),
+                (discard) => true,
                 () => false);
             Assert.IsTrue(instanceWasDeleted);
 
             foundInstanceMaybe = await instance.resourceRef.StorageGetAsync(
+                    additionalProperties: query => query
+                            .Where(item => item.partitionKey == instance.partitionKey),
                 (entity) => entity.AsOptional(),
                 () => default);
             Assert.IsFalse(foundInstanceMaybe.HasValue);
