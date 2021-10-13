@@ -57,11 +57,11 @@ namespace EastFive.Azure.Tests.Persistence
 
             #region Test Boolean
 
-            var itemBoolean = await lookupModel.toggle
+            Assert.IsTrue(await lookupModel.toggle
                 .StorageGetBy(
                     (LookupModel lm) => lm.toggle)
-                .FirstAsync();
-            Assert.AreEqual(itemBoolean.id, lookupModel.id);
+                .ContainsAsync(
+                    lm => lm.id == lookupModel.id));
 
             #endregion
         }
